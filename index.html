@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="description" content="Akavache : An asynchronous, persistent key-value store">
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Akavache</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/gimsum/Akavache">View on GitHub</a>
+
+          <h1 id="project_title">Akavache</h1>
+          <h2 id="project_tagline">An asynchronous, persistent key-value store</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/gimsum/Akavache/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/gimsum/Akavache/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h2>
+<a id="akavache-an-asynchronous-key-value-store-for-native-applications" class="anchor" href="#akavache-an-asynchronous-key-value-store-for-native-applications" aria-hidden="true"><span class="octicon octicon-link"></span></a>Akavache: An Asynchronous Key-Value Store for Native Applications</h2>
+
+<p>Akavache is an <em>asynchronous</em>, <em>persistent</em> (i.e. writes to disk) key-value
+store created for writing desktop and mobile applications in C#, based on
+SQLite3. Akavache is great for both storing important data (i.e. user
+settings) as well as cached local data that expires.</p>
+
+<p><img src="http://f.cl.ly/items/2R3d1o122m090K0W081L/Akavache.png" alt="Dat Logo"></p>
+
+<h3>
+<a id="where-can-i-use-it" class="anchor" href="#where-can-i-use-it" aria-hidden="true"><span class="octicon octicon-link"></span></a>Where can I use it?</h3>
+
+<p>Akavache is currently compatible with:</p>
+
+<ul>
+<li>Xamarin.iOS / Xamarin.Mac 32-bit</li>
+<li>Xamarin.Android</li>
+<li>.NET 4.5 Desktop (WPF)</li>
+<li>Windows Phone 8</li>
+<li>WinRT (Windows Store)</li>
+<li>Windows Phone 8.1 Universal Apps</li>
+</ul>
+
+<h3>
+<a id="what-does-that-mean" class="anchor" href="#what-does-that-mean" aria-hidden="true"><span class="octicon octicon-link"></span></a>What does that mean?</h3>
+
+<p>Downloading and storing remote data from the internet while still keeping the
+UI responsive is a task that nearly every modern application needs to do.
+However, many applications that don't take the consideration of caching into
+the design from the start often end up with inconsistent, duplicated code for
+caching different types of objects.</p>
+
+<p><a href="https://github.com/github/akavache">Akavache</a> is a library that makes common app
+patterns easy, and unifies caching of different object types (i.e. HTTP
+responses vs. JSON objects vs. images).</p>
+
+<p>It's built on a core key-value byte array store (conceptually similar to a
+<code>Dictionary&lt;string, byte[]&gt;</code>), and on top of that store, extensions are
+added to support:</p>
+
+<ul>
+<li>Arbitrary objects via JSON.NET</li>
+<li>Fetching and loading Images and URLs from the Internet</li>
+<li>Storing and automatically encrypting User Credentials</li>
+</ul>
+
+<h2>
+<a id="platform-specific-notes" class="anchor" href="#platform-specific-notes" aria-hidden="true"><span class="octicon octicon-link"></span></a>Platform-specific notes</h2>
+
+<ul>
+<li><p><strong>Xamarin.iOS / Xamarin.Mac 32-bit</strong> - No issues.</p></li>
+<li><p><strong>Xamarin.Android</strong> - No issues.</p></li>
+<li><p><strong>.NET 4.5 Desktop (WPF)</strong> - No issues</p></li>
+<li><p><strong>Windows Phone 8.0</strong> - You must mark your application as <code>x86</code> or <code>ARM</code>, or
+else you will get a strange runtime error about SQLitePCL_Raw not loading
+correctly.</p></li>
+<li><p><strong>WinRT (Windows Store)</strong> - You must mark your application as <code>x86</code> or <code>ARM</code>, or
+else you will get a strange runtime error about SQLitePCL_Raw not loading
+correctly. You must <em>also</em> ensure that the Microsoft Visual C++ runtime is added
+to your project. This means that you must submit several versions of your app
+to the Store to support ARM.</p></li>
+<li><p><strong>Windows Phone 8.1 Universal Apps</strong> - You must mark your application as <code>x86</code>
+or <code>ARM</code>, or else you will get a strange runtime error about SQLitePCL_Raw not
+loading correctly. You must <em>also</em> ensure that the Microsoft Visual C++ runtime
+is added to your project.</p></li>
+</ul>
+
+<h3>
+<a id="getting-started" class="anchor" href="#getting-started" aria-hidden="true"><span class="octicon octicon-link"></span></a>Getting Started</h3>
+
+<p>Interacting with Akavache is primarily done through an object called
+<code>BlobCache</code>. At App startup, you must first set your app's name via
+<code>BlobCache.ApplicationName</code> - on the desktop, your application's data will be
+stored in <code>%AppData%\[ApplicationName]</code> and
+<code>%LocalAppData%\[ApplicationName]</code>. Store data that should be shared between
+different machines in <code>BlobCache.UserAccount</code> and store data that is
+throwaway or per-machine (such as images) in <code>BlobCache.LocalMachine</code>.</p>
+
+<p>The most straightforward way to use Akavache is via the object extensions:</p>
+
+<div class="highlight highlight-source-cs"><pre><span class="pl-k">using</span> System.Reactive.Linq;   <span class="pl-c">// IMPORTANT - this makes await work!</span>
+
+<span class="pl-c">// Make sure you set the application name before doing any inserts or gets</span>
+BlobCache.ApplicationName = <span class="pl-s"><span class="pl-pds">"</span>AkavacheExperiment<span class="pl-pds">"</span></span>;
+
+<span class="pl-k">var</span> myToaster = <span class="pl-k">new</span> Toaster();
+<span class="pl-k">await</span> BlobCache.UserAccount.InsertObject(<span class="pl-s"><span class="pl-pds">"</span>toaster<span class="pl-pds">"</span></span>, myToaster);
+
+<span class="pl-c">//</span>
+<span class="pl-c">// ...later, in another part of town...</span>
+<span class="pl-c">//</span>
+
+<span class="pl-c">// Using async/await</span>
+<span class="pl-k">var</span> toaster = <span class="pl-k">await</span> BlobCache.UserAccount.GetObject&lt;Toaster&gt;(<span class="pl-s"><span class="pl-pds">"</span>toaster<span class="pl-pds">"</span></span>);
+
+<span class="pl-c">// or without async/await</span>
+Toaster toaster;
+
+BlobCache.UserAccount.GetObject&lt;Toaster&gt;(<span class="pl-s"><span class="pl-pds">"</span>toaster<span class="pl-pds">"</span></span>)
+    .Subscribe(x =&gt; toaster = x, ex =&gt; Console.WriteLine(<span class="pl-s"><span class="pl-pds">"</span>No Key!<span class="pl-pds">"</span></span>));</pre></div>
+
+<h3>
+<a id="handling-errors" class="anchor" href="#handling-errors" aria-hidden="true"><span class="octicon octicon-link"></span></a>Handling Errors</h3>
+
+<p>When a key is not present in the cache, GetObject throws a
+KeyNotFoundException (or more correctly, OnError's the IObservable). Often,
+you would want to return a default value instead of failing:</p>
+
+<div class="highlight highlight-source-cs"><pre>Toaster toaster;
+
+<span class="pl-k">try</span> {
+    toaster = <span class="pl-k">await</span> BlobCache.UserAccount.GetObjectAsync(<span class="pl-s"><span class="pl-pds">"</span>toaster<span class="pl-pds">"</span></span>);
+} <span class="pl-k">catch</span> (KeyNotFoundException ex) {
+    toaster = <span class="pl-k">new</span> Toaster();
+}
+
+<span class="pl-c">// Or without async/await:</span>
+toaster = <span class="pl-k">await</span> BlobCache.UserAccount.GetObjectAsync&lt;Toaster&gt;(<span class="pl-s"><span class="pl-pds">"</span>toaster<span class="pl-pds">"</span></span>)
+    .Catch(Observable.Return(<span class="pl-k">new</span> Toaster()));</pre></div>
+
+<h3>
+<a id="examining-akavache-caches" class="anchor" href="#examining-akavache-caches" aria-hidden="true"><span class="octicon octicon-link"></span></a>Examining Akavache caches</h3>
+
+<p>Using <a href="https://github.com/paulcbetts/AkavacheExplorer">Akavache Explorer</a>, you
+can dig into Akavache repos for debugging purposes to see what has been stored.</p>
+
+<p><img src="http://f.cl.ly/items/2D3Y0L0k262X0U0y3B0e/Image%202012.05.07%206:57:48%20PM.png" alt=""></p>
+
+<h3>
+<a id="whats-this-global-variable-nonsense-why-cant-i-use-favorite_ioc_library" class="anchor" href="#whats-this-global-variable-nonsense-why-cant-i-use-favorite_ioc_library" aria-hidden="true"><span class="octicon octicon-link"></span></a>What's this Global Variable nonsense? Why can't I use $FAVORITE_IOC_LIBRARY</h3>
+
+<p>You totally can. Just instantiate <code>SQLitePersistentBlobCache</code> or
+<code>SQLiteEncryptedBlobCache</code> instead - the static variables are there just to make it
+easier to get started.</p>
+
+<h2>
+<a id="basic-method-documentation" class="anchor" href="#basic-method-documentation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Basic Method Documentation</h2>
+
+<p>Every blob cache supports the basic raw operations given below (some of them are
+not implemented directly, but are added on via extension methods):</p>
+
+<div class="highlight highlight-source-cs"><pre><span class="pl-c">/*</span>
+<span class="pl-c"> * Get items from the store</span>
+<span class="pl-c"> */</span>
+
+<span class="pl-c">// Get a single item</span>
+IObservable&lt;<span class="pl-k">byte</span>[]&gt; Get(<span class="pl-k">string</span> key);
+
+<span class="pl-c">// Get a list of items</span>
+IObservable&lt;IDictionary&lt;<span class="pl-k">string</span>, <span class="pl-k">byte</span>[]&gt;&gt; Get(IEnumerable&lt;<span class="pl-k">string</span>&gt; keys);
+
+<span class="pl-c">// Get an object serialized via InsertObject</span>
+IObservable&lt;T&gt; GetObject&lt;T&gt;(<span class="pl-k">string</span> key);
+
+<span class="pl-c">// Get all objects of type T</span>
+IObservable&lt;IEnumerable&lt;T&gt;&gt; GetAllObjects&lt;T&gt;();
+
+<span class="pl-c">// Get a list of objects given a list of keys</span>
+IObservable&lt;IDictionary&lt;<span class="pl-k">string</span>, T&gt;&gt; GetObjects&lt;T&gt;(IEnumerable&lt;<span class="pl-k">string</span>&gt; keys);
+
+<span class="pl-c">/*</span>
+<span class="pl-c"> * Save items to the store</span>
+<span class="pl-c"> */</span>
+
+<span class="pl-c">// Insert a single item</span>
+IObservable&lt;Unit&gt; Insert(<span class="pl-k">string</span> key, <span class="pl-k">byte</span>[] data, DateTimeOffset? absoluteExpiration = <span class="pl-c1">null</span>);
+
+<span class="pl-c">// Insert a set of items</span>
+IObservable&lt;Unit&gt; Insert(IDictionary&lt;<span class="pl-k">string</span>, <span class="pl-k">byte</span>[]&gt; keyValuePairs, DateTimeOffset? absoluteExpiration = <span class="pl-c1">null</span>);
+
+<span class="pl-c">// Insert a single object</span>
+IObservable&lt;Unit&gt; InsertObject&lt;T&gt;(<span class="pl-k">string</span> key, T <span class="pl-k">value</span>, DateTimeOffset? absoluteExpiration = <span class="pl-c1">null</span>);
+
+<span class="pl-c">// Insert a group of objects</span>
+IObservable&lt;Unit&gt; InsertObjects&lt;T&gt;(IDictionary&lt;<span class="pl-k">string</span>, T&gt; keyValuePairs, DateTimeOffset? absoluteExpiration = <span class="pl-c1">null</span>);
+
+<span class="pl-c">/*</span>
+<span class="pl-c"> * Remove items from the store</span>
+<span class="pl-c"> */</span>
+
+<span class="pl-c">// Delete a single item</span>
+IObservable&lt;Unit&gt; Invalidate(<span class="pl-k">string</span> key);
+
+<span class="pl-c">// Delete a list of items</span>
+IObservable&lt;Unit&gt; Invalidate(IEnumerable&lt;<span class="pl-k">string</span>&gt; keys);
+
+<span class="pl-c">// Delete a single object (do *not* use Invalidate for items inserted with InsertObject!)</span>
+IObservable&lt;Unit&gt; InvalidateObject&lt;T&gt;(<span class="pl-k">string</span> key);
+
+<span class="pl-c">// Deletes a list of objects</span>
+IObservable&lt;Unit&gt; InvalidateObjects&lt;T&gt;(IEnumerable&lt;<span class="pl-k">string</span>&gt; keys);
+
+<span class="pl-c">// Deletes all items (regardless if they are objects or not)</span>
+IObservable&lt;Unit&gt; InvalidateAll();
+
+<span class="pl-c">// Deletes all objects of type T</span>
+IObservable&lt;Unit&gt; InvalidateAllObjects&lt;T&gt;();
+
+<span class="pl-c">/*</span>
+<span class="pl-c"> * Get Metadata about items</span>
+<span class="pl-c"> */</span>
+
+<span class="pl-c">// Return a list of all keys. Use for debugging purposes only.</span>
+IObservable&lt;IEnumerable&lt;<span class="pl-k">string</span>&gt;&gt; GetAllKeys();
+
+<span class="pl-c">// Return the time which an item was created</span>
+IObservable&lt;DateTimeOffset?&gt; GetCreatedAt(<span class="pl-k">string</span> key);
+
+<span class="pl-c">// Return the time which an object of type T was created</span>
+IObservable&lt;DateTimeOffset?&gt; GetObjectCreatedAt&lt;T&gt;(<span class="pl-k">string</span> key);
+
+<span class="pl-c">// Return the time which a list of keys were created</span>
+IObservable&lt;IDictionary&lt;<span class="pl-k">string</span>, DateTimeOffset?&gt;&gt; GetCreatedAt(IEnumerable&lt;<span class="pl-k">string</span>&gt; keys);
+
+<span class="pl-c">/*</span>
+<span class="pl-c"> * Utility methods</span>
+<span class="pl-c"> */</span>
+
+<span class="pl-c">// Attempt to ensure all outstanding operations are written to disk</span>
+IObservable&lt;Unit&gt; Flush();
+
+<span class="pl-c">// Preemptively drop all expired keys and run SQLite's VACUUM method on the</span>
+<span class="pl-c">// underlying database</span>
+IObservable&lt;Unit&gt; Vacuum();</pre></div>
+
+<h2>
+<a id="extension-method-documentation" class="anchor" href="#extension-method-documentation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Extension Method Documentation</h2>
+
+<p>On top of every <code>IBlobCache</code> object, there are extension methods that help with
+common application scenarios:</p>
+
+<div class="highlight highlight-source-cs"><pre><span class="pl-c">/*</span>
+<span class="pl-c"> * Username / Login Methods (only available on ISecureBlobCache)</span>
+<span class="pl-c"> */</span>
+
+<span class="pl-c">// Save login information for the given host</span>
+IObservable&lt;Unit&gt; SaveLogin(<span class="pl-k">string</span> user, <span class="pl-k">string</span> password, <span class="pl-k">string</span> host = <span class="pl-s"><span class="pl-pds">"</span>default<span class="pl-pds">"</span></span>, DateTimeOffset? absoluteExpiration = <span class="pl-c1">null</span>);
+
+<span class="pl-c">// Load information for the given host</span>
+IObservable&lt;LoginInfo&gt; GetLoginAsync(<span class="pl-k">string</span> host = <span class="pl-s"><span class="pl-pds">"</span>default<span class="pl-pds">"</span></span>);
+
+<span class="pl-c">// Erase information for the given host</span>
+IObservable&lt;Unit&gt; EraseLogin(<span class="pl-k">string</span> host = <span class="pl-s"><span class="pl-pds">"</span>default<span class="pl-pds">"</span></span>);
+
+<span class="pl-c">/*</span>
+<span class="pl-c"> * Downloading and caching URLs and Images</span>
+<span class="pl-c"> */</span>
+
+<span class="pl-c">// Download a file as a byte array</span>
+IObservable&lt;<span class="pl-k">byte</span>[]&gt; DownloadUrl(<span class="pl-k">string</span> url,
+    IDictionary&lt;<span class="pl-k">string</span>, <span class="pl-k">string</span>&gt; headers = <span class="pl-c1">null</span>,
+    <span class="pl-k">bool</span> fetchAlways = <span class="pl-c1">false</span>,
+    DateTimeOffset? absoluteExpiration = <span class="pl-c1">null</span>);
+
+<span class="pl-c">// Load a given key as an image</span>
+IObservable&lt;IBitmap&gt; LoadImage(<span class="pl-k">string</span> key, <span class="pl-k">float</span>? desiredWidth = <span class="pl-c1">null</span>, <span class="pl-k">float</span>? desiredHeight = <span class="pl-c1">null</span>);
+
+<span class="pl-c">// Download an image from the network and load it</span>
+IObservable&lt;IBitmap&gt; LoadImageFromUrl(<span class="pl-k">string</span> url,
+    <span class="pl-k">bool</span> fetchAlways = <span class="pl-c1">false</span>,
+    <span class="pl-k">float</span>? desiredWidth = <span class="pl-c1">null</span>,
+    <span class="pl-k">float</span>? desiredHeight = <span class="pl-c1">null</span>,
+    DateTimeOffset? absoluteExpiration = <span class="pl-c1">null</span>);
+
+<span class="pl-c">/*</span>
+<span class="pl-c"> * Composite operations</span>
+<span class="pl-c"> */</span>
+
+<span class="pl-c">// Attempt to return an object from the cache. If the item doesn't</span>
+<span class="pl-c">// exist or returns an error, call a Func to return the latest</span>
+<span class="pl-c">// version of an object and insert the result in the cache.</span>
+IObservable&lt;T&gt; GetOrFetchObject&lt;T&gt;(<span class="pl-k">string</span> key, Func&lt;Task&lt;T&gt;&gt; fetchFunc, DateTimeOffset? absoluteExpiration = <span class="pl-c1">null</span>);
+
+<span class="pl-c">// Like GetOrFetchObject, but isn't async</span>
+IObservable&lt;T&gt; GetOrCreateObject&lt;T&gt;(<span class="pl-k">string</span> key, Func&lt;T&gt; fetchFunc, DateTimeOffset? absoluteExpiration = <span class="pl-c1">null</span>);
+
+<span class="pl-c">// Immediately return a cached version of an object if available, but *always*</span>
+<span class="pl-c">// also execute fetchFunc to retrieve the latest version of an object.</span>
+IObservable&lt;T&gt; GetAndFetchLatest&lt;T&gt;(<span class="pl-k">string</span> key,
+    Func&lt;Task&lt;T&gt;&gt; fetchFunc,
+    Func&lt;DateTimeOffset, <span class="pl-k">bool</span>&gt; fetchPredicate = <span class="pl-c1">null</span>,
+    DateTimeOffset? absoluteExpiration = <span class="pl-c1">null</span>);</pre></div>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Akavache maintained by <a href="https://github.com/gimsum">gimsum</a></p>
+        <p>Published with <a href="https://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
